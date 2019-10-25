@@ -1,0 +1,28 @@
+Regras Nebulosas
+SE DIREITA=LONGE ENTAO MOVER_5_DIREITA x
+SE DIREITA=MEDIO ENTAO MOVER_2_DIREITA x
+SE DIREITA=MEDIO E BAIXO=MEDIO ENTAO MOVER_2_DIREITA 
+SE DIREITA=MEDIO E BAIXO=LONGE ENTAO MOVER_2_DIREITA 
+SE DIREITA=PERTO E BAIXO=LONGE ENTAO MOVER_5_BAIXO 
+SE DIREITA=PERTO E BAIXO=MEDIO ENTAO MOVER_2_BAIXO 
+SE DIREITA=PERTO E BAIXO=PERTO E ESQUERDA=LONGE ENTAO MOVER_2_ESQUERDA
+SE DIREITA=PERTO E BAIXO=PERTO E ESQUERDA=MEDIO ENTAO MOVER_1_ESQUERDA
+SE DIREITA=PERTO E BAIXO=PERTO E ESQUERDA=PERTO E CIMA=LONGE ENTAO MOVER_2_CIMA
+SE DIREITA=PERTO E BAIXO=PERTO E ESQUERDA=PERTO E CIMA=MEDIO ENTAO MOVER_1_CIMA
+
+
+O robo precisa olhar para todas as direcoes e contar a quantidade e espacos antes de um obstaculo o robo so consegue contar ate 5 espacos.
+,
+DIREITA(x)
+BAIXO(y)
+CIMA(k)
+ESQUERDA(e)
+
+[x,y,k,e]  -> quantidade de espacos de cada direcao
+
+Todas as direcoes precisam possuir as caracteristicas Perto, Medio ou Longe
+A quantidade de espacos contados de cada direcao deverao ser usadas nas expressoes de Mp(x), Mm(x) e Ml(x)
+Os resultados deverao ser encaixados de acordo com a regra acima para a movimentacao do robo
+
+
+SE DIREITA=LONGE

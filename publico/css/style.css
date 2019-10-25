@@ -3,30 +3,12 @@ html{
     font-family: 'Roboto', sans-serif;
 }
 
-.text-area-size{
-    min-width: 933px;
-    max-width: 933px;
-    min-height: 300px;
+#map {
+    height: 450px;
 }
 
-.background-primary{
-    background-color: #dd6200;
-}
-
-.background-secondary{
-    background-color: #2c2c2c;
-}
-
-.color-primary{
-    color: #dd6200;
-}
-
-.btn-primatry{
-    background-color: #dd6200;
-}
-
-.btn:hover, .btn-large:hover, .btn-small:hover {
-    background-color: #565656;
+#map span {
+    font-size: 22px;
 }
 
 /*******EXTENDS********/

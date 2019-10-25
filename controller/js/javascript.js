@@ -1,6 +1,6 @@
 const OPTS = ['.', '.', '.', '.', 'O'];
 const CONFIG = {
-    size: 10,
+    size: 20,
     interval: 5,
 };
 const MAPPER = {
@@ -12,8 +12,9 @@ const MAPPER = {
 let ROUND = 1;
 let MAP = [[]];
 let FINISH = false;
+let ROAD = [0, 0];
 let ROBO = [0, 0];
-let TESTE = [0, 0];
+const SAIDA = [CONFIG.size - 1, CONFIG.size - 1];
 
 async function iniciar() {
 
@@ -21,13 +22,13 @@ async function iniciar() {
     //Setando posicao inicial Robô
     setPosition(ROBO[0], ROBO[1], '@');
     //Setando posicao da saida
-    setPosition(CONFIG.size - 1, CONFIG.size - 1, 'S');
+    //setPosition(CONFIG.size -1, CONFIG.size -1, 'S');
+    setPosition(SAIDA[0], SAIDA[1], 'S');
     print(MAP);
-
     while (!FINISH) {
-        console.log('ROBO: ', ROBO);
-        finish();
+        // getWeight(ROBO);
         await go();
+        finish();
     }
 
     console.log('VOCE ENCONTROU A SAÍDA');
@@ -44,18 +45,18 @@ async function go() {
 async function getNext() {
     let rr = ROBO[0];
     let cr = ROBO[1];
-    const coordinate = {
+    const space = {
         top: getTop(rr, cr),
         right: getRight(rr, cr),
         bottom: getBottom(rr, cr),
         left: getLeft(rr, cr),
     }
-    console.log('cordinante: ', coordinate)
-    const fuzzy = await fuzzyfication(coordinate);
+    const fuzzy = await fuzzyfication(space);
     const distance = await getDistance(fuzzy);
-    const step = await defuzzyfication(distance);
+    const step = await defuzzyfication(distance, space);
     return step;
 }
+
 
 function getRight(r, c) {
     try {
@@ -64,7 +65,7 @@ function getRight(r, c) {
         let right;
         const interval = getInterval(c);
 
-        for (let i = 0; i <= interval; i++) {
+        for (let i = 0; i < interval; i++) {
             RIGHT.push(MAP[r][c + 1 + i]);
         }
 
@@ -73,13 +74,13 @@ function getRight(r, c) {
                 right = index;
                 break;
             }
-
-            right = index;
+            right = interval;
         }
         // console.log('right', right)
         // console.log('********************')
-        return right
-    } catch (error) { FINISH = true
+        return RIGHT.length ? right : 0;
+    } catch (error) {
+        FINISH = true
         console.log('GETRIGHT', error)
         // console.log('********************')
     }
@@ -88,6 +89,7 @@ function getRight(r, c) {
 function getBottom(r, c) {
     try {
         // console.log('********************')
+
         const BOTTOM = [];
         let bottom;
         const interval = getInterval(r);
@@ -96,18 +98,20 @@ function getBottom(r, c) {
             BOTTOM.push(MAP[r + 1 + i][c]);
         }
 
+
         for (let [index, element] of BOTTOM.entries()) {
             if (element === 'O') {
                 bottom = index;
                 break;
             }
 
-            bottom = index;
+            bottom = interval;
         }
         // console.log('bottom', bottom)
         // console.log('********************')
-        return bottom
-    } catch (error) { FINISH = true
+        return BOTTOM.length ? bottom : 0;
+    } catch (error) {
+        FINISH = true
         console.log('GETBOTTOM', error)
         // console.log('********************')
     }
@@ -121,13 +125,13 @@ function getTop(r, c) {
 
         const interval = getInverseInterval(r);
 
-        for (let i = -1; i <= interval; i++) {
-            TOP.push(MAP[r + 1 - i][c]);
+        for (let i = 0; i <= interval; i++) {
+            TOP.push(MAP[r - i][c]);
         }
 
         for (let [index, element] of TOP.entries()) {
             if (element === 'O') {
-                top = index;
+                top = index - 1;
                 break;
             }
 
@@ -136,7 +140,8 @@ function getTop(r, c) {
         // console.log('top', top)
         // console.log('********************')
         return top
-    } catch (error) { FINISH = true
+    } catch (error) {
+        FINISH = true
         console.log('GETTOP', error)
         // console.log('********************')
     }
@@ -145,29 +150,25 @@ function getTop(r, c) {
 
 function getLeft(r, c) {
     try {
-        // console.log('********************')
         const LEFT = [];
-        let left = 0;
+        let left;
+
         const interval = getInverseInterval(c);
+
         for (let i = 0; i <= interval; i++) {
             LEFT.push(MAP[r][c - i]);
-            console.log('LEFT', LEFT);
         }
 
-        for (let [element, index] of LEFT.entries()) {
-            if (element === 'O' || interval === 0) {
-                left = index;
+        for (let [index, element] of LEFT.entries()) {
+            if (element === 'O') {
+                left = index - 1;
                 break;
             }
-            console.log('index: ', index);
             left = index;
         }
-        // console.log('left', left)
-        // console.log('********************')
-        return left
-    } catch (error) { FINISH = true
-        console.log('GETLEFT', error)
-        // console.log('********************')
+        return left;
+    } catch (error) {
+
     }
 
 }
@@ -189,10 +190,9 @@ function getInverseInterval(positionRobot) {
 }
 
 function finish() {
-    const isFinish = ROBO[0] === CONFIG.size - 1
-        && ROBO[1] === CONFIG.size - 1;
-
-    FINISH = isFinish;
+    if (ROBO[0] === CONFIG.size - 1 && ROBO[1] === CONFIG.size - 1) {
+        FINISH = true;
+    }
 }
 
 function getRobotPosition() {
@@ -207,7 +207,9 @@ function getRobotPosition() {
 
 function print(matriz) {
     let map = '';
-    matriz.forEach(arr => {
+    let rows = '';
+    matriz.forEach((arr, index) => {
+        rows += `${index}   `;
         let row = '';
         arr.map(item => {
             row += `${item}   `;
@@ -215,6 +217,7 @@ function print(matriz) {
         map += `${row}\n`;
     });
     console.log(`### Rodada ${ROUND} ###`)
+    console.log(rows)
     console.log(map);
 }
 
@@ -227,6 +230,7 @@ function setPosition(row, column, element) {
         }
         ROBO[0] = row
         ROBO[1] = column;
+        ROAD.push(ROBO);
     }
 }
 
@@ -277,40 +281,137 @@ async function fuzzyfication(params) {
             far: maximumFar(params.left)
         }
     }
-    console.log(distance)
     return distance;
 }
 
-async function defuzzyfication(distance) {
+async function defuzzyfication(distance, space) {
+
+    const { a, b, c, d } = getPercent();
 
     if (MAPPER[distance.right] === MAPPER.far) {
-        return [ROBO[0] + 0, ROBO[1] + 5];
+        if (space.right = d) {
+            return [ROBO[0], ROBO[1] + d];
+        }
     } else {
-        if (MAPPER[distance.right] === MAPPER.medium && MAPPER[distance.bottom] === MAPPER.medium) {
-            return [ROBO[0] + 0, ROBO[1] + 2];
-        } else {
-            if (MAPPER[distance.right] === MAPPER.medium && MAPPER[distance.bottom] === MAPPER.far) {
-                return [ROBO[0] + 0, ROBO[1] + 2];
+        if (MAPPER[distance.right] === MAPPER.medium) {
+            if (space.right === b) {
+                return [ROBO[0], ROBO[1] + b];
             } else {
-                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.far) {
-                    return [ROBO[0] + 5, ROBO[1] + 0];
+                if (space.right > b && space.right < c) {
+                    return [ROBO[0], ROBO[1] + space.right];
                 } else {
-                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.medium) {
-                        return [ROBO[0] + 2, ROBO[1] + 0];
+                    return [ROBO[0], ROBO[1] + c];
+                }
+            }
+        } else {
+            if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.far) {
+                if (space.right === a) {
+                    return [ROBO[0], ROBO[1] + a];
+                } else {
+                    return [ROBO[0] + d, ROBO[1]];
+                }
+            } else {
+                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.medium) {
+                    if (space.right === a) {
+                        return [ROBO[0], ROBO[1] + a];
                     } else {
-                        if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.far) {
-                            return [ROBO[0] + 0, ROBO[1] - 2];
+                        if (space.bottom === b) {
+                            return [ROBO[0] + b, ROBO[1]];
                         } else {
-                            if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.medium) {
-                                return [ROBO[0] + 0, ROBO[1] - 1];
+                            if (space.bottom > b && space.bottom < c) {
+                                return [ROBO[0] + space.bottom, ROBO[1]];
                             } else {
-                                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.far) {
-                                    return [ROBO[0] - 2, ROBO[1] + 0];
+                                return [ROBO[0] + c, ROBO[1]];
+                            }
+                        }
+                    }
+                } else {
+                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.far) {
+                        if (space.right === a) {
+                            return [ROBO[0], ROBO[1] + a];
+                        } else {
+                            if (space.bottom === a) {
+                                return [ROBO[0] + a, ROBO[1]]
+                            } else {
+                                return [ROBO[0], ROBO[1] - b];
+                            }
+                        }
+                    } else {
+                        if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.medium) {
+                            if (space.right === a){
+                                return [ROBO[0], ROBO[1] + a];
+                            } else {
+                                if (space.bottom === a) {
+                                    return [ROBO[0] + a, ROBO[1]];
                                 } else {
-                                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.medium) {
-                                        return [ROBO[0] - 1, ROBO[1] - 0]
+                                    if (space.left === b) {
+                                        return [ROBO[0], ROBO[1] - a];
                                     } else {
-                                        console.log('deu merda')
+                                        if (space.left > b && space.left < c) {
+                                            return [ROBO[0], ROBO[1] - a];
+                                        } else {
+                                            return [ROBO[0], ROBO[1] - a]
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.far) {
+                                if (space.right === a) {
+                                    return [ROBO[0], ROBO[1] + a];
+                                } else {
+                                    if (space.bottom === a) {
+                                        return [ROBO[0] + a, ROBO[1]];
+                                    } else {
+                                        if (space.left === a) {
+                                            return [ROBO[0], ROBO[1] - a];
+                                        } else {
+                                            return [ROBO[0] - b, ROBO[1]];
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.medium) {
+                                    if (space.right === a) {
+                                        return [ROBO[0], ROBO[1] + a];
+                                    } else {
+                                        if (space.bottom === a) {
+                                            return [ROBO[0] + a, ROBO[1]];
+                                        } else {
+                                            if (space.left === a) {
+                                                return [ROBO[0], ROBO[1] - a];
+                                            } else {
+                                                if (space.top === b) {
+                                                    return [ROBO[0] - b, ROBO[1]]
+                                                } else {
+                                                    if (space.top > b && space.top < c) {
+                                                        return [ROBO[0] + space.top, ROBO[1]];
+                                                    } else {
+                                                        return [ROBO[0] + b, ROBO[1]];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.close) {
+                                        if (space.right === a) {
+                                            return [ROBO[0], ROBO[1] + a];
+                                        } else {
+                                            if (space.bottom === a) {
+                                                return [ROBO[0] + a, ROBO[1]];
+                                            } else {
+                                                if (space.left === a) {
+                                                    return [ROBO[0], ROBO[1] - a];
+                                                } else {
+                                                    if (space.top === a) {
+                                                        return [ROBO[0] + a, ROBO[1]];
+                                                    } else {
+                                                        console.log('VOCE ESTA PRESO')
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -320,8 +421,6 @@ async function defuzzyfication(distance) {
             }
         }
     }
-
-    console.log('distances', distance);
 }
 
 async function getDistance(distance) {
@@ -402,6 +501,16 @@ function maximumFar(x) {
     }
 }
 
+function passed(coordenate) {
+    let wasPassed = false;
+    for (const row of ROAD) {
+        if (row === coordenate) {
+            isPassed = true;
+            break;
+        }
+    }
+    return wasPassed;
+}
 
 $(document).ready(function () {
     $('#go').click(iniciar);
@@ -409,7 +518,7 @@ $(document).ready(function () {
 
 console.log(`------ DICAS ------
 | Caminho: .      |
-| Obstáculo: 0    |
+| Obstáculo: O    |
 | Robo: @         |
 | Saída: S        |
 -------------------`);
