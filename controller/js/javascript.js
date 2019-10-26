@@ -1,6 +1,7 @@
 const OPTS = ['.', '.', '.', '.', 'O'];
 const CONFIG = {
-    size: 20,
+    size: 10
+    ,
     interval: 5,
 };
 const MAPPER = {
@@ -12,7 +13,7 @@ const MAPPER = {
 let ROUND = 1;
 let MAP = [[]];
 let FINISH = false;
-let ROAD = [0, 0];
+let ROAD = [[0,0]];
 let ROBO = [0, 0];
 const SAIDA = [CONFIG.size - 1, CONFIG.size - 1];
 
@@ -39,6 +40,7 @@ async function go() {
     const next = await getNext();
     // setPosition(4, 4, '@');
     setPosition(next[0], next[1], '@');
+    ROAD.push(next);
     print(MAP);
 }
 
@@ -54,6 +56,7 @@ async function getNext() {
     const fuzzy = await fuzzyfication(space);
     const distance = await getDistance(fuzzy);
     const step = await defuzzyfication(distance, space);
+    //console.log('DISTANCE: ', distance)
     return step;
 }
 
@@ -195,16 +198,6 @@ function finish() {
     }
 }
 
-function getRobotPosition() {
-    const arr = MAP.map((row, r) => row.map((column, c) => {
-        if (column === '@') {
-            return [r, c];
-        };
-    }));
-
-    return arr[0][0];
-}
-
 function print(matriz) {
     let map = '';
     let rows = '';
@@ -230,7 +223,7 @@ function setPosition(row, column, element) {
         }
         ROBO[0] = row
         ROBO[1] = column;
-        ROAD.push(ROBO);
+        
     }
 }
 
@@ -284,143 +277,163 @@ async function fuzzyfication(params) {
     return distance;
 }
 
-async function defuzzyfication(distance, space) {
+async function defuzzyfication(distance, space){
 
     const { a, b, c, d } = getPercent();
+    if(MAPPER[distance.right] === MAPPER.far){
+        if(space.right = d){
+            if(!passed([ROBO[0], ROBO[1] + d])){
+                return [ROBO[0], ROBO[1] + d];
+           }
+        }
+    }if(MAPPER[distance.right] === MAPPER.medium){
+        if(space.right === b){
+            if(!passed([ROBO[0], ROBO[1] + b])){
+                return [ROBO[0], ROBO[1] + b]
+            } 
+        }if(space.right > b && space.right <= c){
+            if(!passed([ROBO[0], ROBO[1] + space.right])){
+                return [ROBO[0], ROBO[1] + space.right];
+            }
+        }
+    } if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.far){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === d){
+            if(!passed([ROBO[0] + d, ROBO[1]])){
+                return[ROBO[0] + d, ROBO[1]]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.medium){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === b){
+            if(!passed([ROBO[0] + b, ROBO[1]])){
+                return [ROBO[0] + b, ROBO[1]];
+            }
+        }if(space.bottom > b && space.bottom <= c){
+            if(!passed([ROBO[0] + space.bottom, ROBO[1]])){
+                return [ROBO[0] + space.bottom, ROBO[1]]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.close
+            && MAPPER[distance.left] === MAPPER.far){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === a){
+            if(!passed([ROBO[0] + a, ROBO[1]])){
+                return [ROBO[0] + a, ROBO[1]]
+            }
+        }if(space.left === d){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return[ROBO[0], ROBO[1] - a]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.close
+            && MAPPER[distance.left] === MAPPER.medium){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === a){
+            if(!passed([ROBO[0] + a, ROBO[1]])){
+                return [ROBO[0] + a, ROBO[1]]
+            }
+        }if(space.left === b){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return[ROBO[0], ROBO[1] - a]
+            }
+        }if(space.left > b && space.left <= c){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return [ROBO[0], ROBO[1] - a]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.close
+            && MAPPER[distance.left] === MAPPER.close
+                && MAPPER[distance.top] === MAPPER.far){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === a){
+            if(!passed([ROBO[0] + a, ROBO[1]])){
+                return [ROBO[0] + a, ROBO[1]]
+            }
+        }if(space.left === a){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return [ROBO[0], ROBO[1] - a]
+            }
+        }if(space.top === d){
+            if(!passed([ROBO[0] - a, ROBO[1]])){
+                return [ROBO[0] - a, ROBO[1]]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.close
+            && MAPPER[distance.left] === MAPPER.close
+                && MAPPER[distance.top] === MAPPER.medium){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === a){
+            if(!passed([ROBO[0] + a, ROBO[1]])){
+                return [ROBO[0] + a, ROBO[1]]
+            }
+        }if(space.left === a){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return [ROBO[0], ROBO[1] - a]
+            }
+        }if(space.top === b){
+            if(!passed([ROBO[0] - a, ROBO[1]])){
+                return [ROBO[0] - a, ROBO[1]]
+            }
+        }if(space.top > b && space.top <= c){
+            if(!passed([ROBO[0] - a, ROBO[1]])){
+                return [ROBO[0] - a, ROBO[1]]
+            }
+        }
+    }if(MAPPER[distance.right] === MAPPER.close
+        && MAPPER[distance.bottom] === MAPPER.close
+            && MAPPER[distance.left] === MAPPER.close 
+                && MAPPER[distance.top] === MAPPER.close){
+        if(space.right === a){
+            if(!passed([ROBO[0], ROBO[1] + a])){
+                return [ROBO[0], ROBO[1] + a]
+            }
+        }if(space.bottom === a){
+            if(!passed([ROBO[0] + a, ROBO[1]])){
+                return [ROBO[0] + a, ROBO[1]]
+            }
+        }if(space.left === a){
+            if(!passed([ROBO[0], ROBO[1] - a])){
+                return [ROBO[0], ROBO[1] - a]
+            }
+        }if(space.top === a){
+            if(!passed([ROBO[0] - a, ROBO[1]])){
+                return [ROBO[0] - a, ROBO[1]]
+            }
+        }
+    }if(MAPPER[distance.top] === MAPPER.close || MAPPER[distance.top] === MAPPER.medium){
+        if(space.top ===a){
+            if(!passed([ROAD[0] - a], ROBO[1])){
+                return [ROAD[0] - a], ROBO[1]
+            }
+        }
+    }console.log('VOCE ESTA PRESO')
 
-    if (MAPPER[distance.right] === MAPPER.far) {
-        if (space.right = d) {
-            return [ROBO[0], ROBO[1] + d];
-        }
-    } else {
-        if (MAPPER[distance.right] === MAPPER.medium) {
-            if (space.right === b) {
-                return [ROBO[0], ROBO[1] + b];
-            } else {
-                if (space.right > b && space.right < c) {
-                    return [ROBO[0], ROBO[1] + space.right];
-                } else {
-                    return [ROBO[0], ROBO[1] + c];
-                }
-            }
-        } else {
-            if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.far) {
-                if (space.right === a) {
-                    return [ROBO[0], ROBO[1] + a];
-                } else {
-                    return [ROBO[0] + d, ROBO[1]];
-                }
-            } else {
-                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.medium) {
-                    if (space.right === a) {
-                        return [ROBO[0], ROBO[1] + a];
-                    } else {
-                        if (space.bottom === b) {
-                            return [ROBO[0] + b, ROBO[1]];
-                        } else {
-                            if (space.bottom > b && space.bottom < c) {
-                                return [ROBO[0] + space.bottom, ROBO[1]];
-                            } else {
-                                return [ROBO[0] + c, ROBO[1]];
-                            }
-                        }
-                    }
-                } else {
-                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.far) {
-                        if (space.right === a) {
-                            return [ROBO[0], ROBO[1] + a];
-                        } else {
-                            if (space.bottom === a) {
-                                return [ROBO[0] + a, ROBO[1]]
-                            } else {
-                                return [ROBO[0], ROBO[1] - b];
-                            }
-                        }
-                    } else {
-                        if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.medium) {
-                            if (space.right === a){
-                                return [ROBO[0], ROBO[1] + a];
-                            } else {
-                                if (space.bottom === a) {
-                                    return [ROBO[0] + a, ROBO[1]];
-                                } else {
-                                    if (space.left === b) {
-                                        return [ROBO[0], ROBO[1] - a];
-                                    } else {
-                                        if (space.left > b && space.left < c) {
-                                            return [ROBO[0], ROBO[1] - a];
-                                        } else {
-                                            return [ROBO[0], ROBO[1] - a]
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.far) {
-                                if (space.right === a) {
-                                    return [ROBO[0], ROBO[1] + a];
-                                } else {
-                                    if (space.bottom === a) {
-                                        return [ROBO[0] + a, ROBO[1]];
-                                    } else {
-                                        if (space.left === a) {
-                                            return [ROBO[0], ROBO[1] - a];
-                                        } else {
-                                            return [ROBO[0] - b, ROBO[1]];
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.medium) {
-                                    if (space.right === a) {
-                                        return [ROBO[0], ROBO[1] + a];
-                                    } else {
-                                        if (space.bottom === a) {
-                                            return [ROBO[0] + a, ROBO[1]];
-                                        } else {
-                                            if (space.left === a) {
-                                                return [ROBO[0], ROBO[1] - a];
-                                            } else {
-                                                if (space.top === b) {
-                                                    return [ROBO[0] - b, ROBO[1]]
-                                                } else {
-                                                    if (space.top > b && space.top < c) {
-                                                        return [ROBO[0] + space.top, ROBO[1]];
-                                                    } else {
-                                                        return [ROBO[0] + b, ROBO[1]];
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    if (MAPPER[distance.right] === MAPPER.close && MAPPER[distance.bottom] === MAPPER.close && MAPPER[distance.left] === MAPPER.close && MAPPER[distance.top] === MAPPER.close) {
-                                        if (space.right === a) {
-                                            return [ROBO[0], ROBO[1] + a];
-                                        } else {
-                                            if (space.bottom === a) {
-                                                return [ROBO[0] + a, ROBO[1]];
-                                            } else {
-                                                if (space.left === a) {
-                                                    return [ROBO[0], ROBO[1] - a];
-                                                } else {
-                                                    if (space.top === a) {
-                                                        return [ROBO[0] + a, ROBO[1]];
-                                                    } else {
-                                                        console.log('VOCE ESTA PRESO')
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+   
 }
 
 async function getDistance(distance) {
@@ -504,8 +517,8 @@ function maximumFar(x) {
 function passed(coordenate) {
     let wasPassed = false;
     for (const row of ROAD) {
-        if (row === coordenate) {
-            isPassed = true;
+        if (JSON.stringify(row) === JSON.stringify(coordenate)) {
+            wasPassed = true;
             break;
         }
     }
